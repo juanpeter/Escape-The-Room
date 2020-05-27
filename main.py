@@ -14,20 +14,6 @@ GAME_TIMER = 100
 CHAR_WIDTH, CHAR_HEIGHT = ((32),(32))
 SPEED = 5
 
-#Medidas do ground
-GROUND_WIDTH = 2 * SCREEN_WIDTH
-GROUND_HEIGHT = 100
-
-#Medidas da Pipe
-PIPE_WIDTH = 80
-PIPE_HEIGHT = 500
-PIPE_GAP = 200
-
-#gravidade
-GRAVITY = 1
-#velocidade horizontal do jogo
-GAME_SPEED = 10
-
 #Criar classe Protag, o personagem principal
 class Protag(pygame.sprite.Sprite):
     #código de inicialização de toda classe Sprite do pygame
@@ -61,9 +47,9 @@ class Protag(pygame.sprite.Sprite):
         #Necessário para posicionar a sprite na tela
         self.rect = self.image.get_rect()
         #Desenhar o pássaro na metade da tela. o [0] se refere a posição X
-        self.rect[0] = 32 + CHAR_WIDTH
+        self.rect[0] = 32
         #Desenhar o pássaro na metade da tela. o [1] se refere a posição Y
-        self.rect[1] = 96 + CHAR_WIDTH
+        self.rect[1] = 112
 
     def update(self):
   
@@ -117,12 +103,10 @@ class Protag(pygame.sprite.Sprite):
             
             protag.rect[0] -= SPEED
             self.stepCounter += 1
-        
-        print(self.stepCounter)
 
 class Object(pygame.sprite.Sprite):
 
-    def __init__(self, path, positionX, positionY):
+    def __init__(self, path, positionX, positionY, colision = True):
         pygame.sprite.Sprite.__init__(self)
         image = Image.open(path)
         self.image = pygame.image.load(path)
@@ -133,21 +117,23 @@ class Object(pygame.sprite.Sprite):
         self.rect[1] = positionY
         self.hitbox = pygame.Rect(positionX, positionY, 2 * image.width - 8, 2 * image.height - 8)
         pygame.draw.rect(screen, (0,255,0), self.hitbox)
+        self.colision = colision
 
     def update(self):
-        if self.hitbox.colliderect(protag):
-            #Left
-            if protag.rect.left >= self.rect.left:
-                protag.rect.left += SPEED
-            #Right
-            if protag.rect.right <= self.rect.right:
-                protag.rect.right -= SPEED
-            #Top
-            if protag.rect.top >= self.rect.top:
-                protag.rect.top += SPEED
-            #Bottom
-            if protag.rect.bottom <= self.rect.bottom:
-                protag.rect.bottom -= SPEED
+        if self.colision:
+            if self.hitbox.colliderect(protag):
+                #Left
+                if protag.rect.left >= self.rect.left:
+                    protag.rect.left += SPEED
+                #Right
+                if protag.rect.right <= self.rect.right:
+                    protag.rect.right -= SPEED
+                #Top
+                if protag.rect.top >= self.rect.top:
+                    protag.rect.top += SPEED
+                #Bottom
+                if protag.rect.bottom <= self.rect.bottom:
+                    protag.rect.bottom -= SPEED
 
 def pictureUpdate():
     pictures = [
@@ -163,6 +149,9 @@ def pictureUpdate():
 
     if protag.stepCounter >= GAME_TIMER:
         picture = Object(pictures[1], 32, 25)
+        #TO DO talvez fazer isso
+        # BACKGROUND = pygame.image.load('assets/roomDark.png')
+        # screen.blit(BACKGROUND, (-32,-20))
 
     if protag.stepCounter >= 2 * GAME_TIMER:
         picture = Object(pictures[2], 32, 25)
@@ -176,10 +165,19 @@ def pictureUpdate():
     if protag.stepCounter >= 5 * GAME_TIMER:
         picture = Object(pictures[5], 32, 25)
         #Dar game over aqui
+        # BACKGROUND = pygame.image.load('assets/roomDark.png')
 
     object_group.add(picture)
 
 def createWalls():
+
+    Walls = [
+        pygame.Rect(0, 0, SCREEN_WIDTH, 56),
+        pygame.Rect(0, 0, 24, SCREEN_HEIGHT),
+        pygame.Rect(SCREEN_WIDTH - 24, 0, 24, SCREEN_HEIGHT),
+        pygame.Rect(0, SCREEN_HEIGHT - 20, SCREEN_WIDTH, 24),
+    ]
+
     #Criar paredes
     for i in range(4):
         pygame.draw.rect(screen, (255,0,0), Walls[i])
@@ -219,12 +217,23 @@ protag_group.add(protag)
 
 #criar grupo de objetos
 object_group = pygame.sprite.Group()
-bed = Object('assets/objects/bed.png', 32, 112)
+bed = Object('assets/objects/bed.png', 32, 112, False)
 window = Object('assets/objects/window.png', 220, 16)
 table = Object('assets/objects/table.png', SCREEN_WIDTH / 2 - 48, SCREEN_HEIGHT / 2 - 24)
-chair = Object('assets/objects/chair.png', SCREEN_WIDTH / 2 + 8, 152)
+chair2 = Object('assets/objects/chair2.png', 260, 200, False)
+carpet = Object('assets/objects/carpet.png', SCREEN_WIDTH / 2 - 48, 72, False)
+carpet2 = Object('assets/objects/carpet.png', 200, 210, False)
+books = Object('assets/objects/books.png', 232, 152)
+pot = Object('assets/objects/pot.png', 32, 230)
+safe = Object('assets/objects/safe.png', 200, 152)
 exitDoor = Object('assets/objects/exitDoor.png', SCREEN_WIDTH / 2 - 32, 24)
-object_group.add(window, bed, table, chair, exitDoor)
+object_group.add(window, carpet, carpet2, table, bed,  books, chair2, pot, safe, exitDoor)
+
+object_over = pygame.sprite.Group()
+plant = Object('assets/objects/plant.png', 32, 190, False)
+sheets = Object('assets/objects/sheets.png', 32, 133, False)
+chair = Object('assets/objects/chair.png', SCREEN_WIDTH / 2 + 8, 156, False)
+object_over.add(sheets, plant, chair)
 
 #fps
 clock = pygame.time.Clock()
@@ -233,22 +242,15 @@ while True:
     #definir fps no jogo
     clock.tick(FPS)
 
-    Walls = [
-        pygame.Rect(0, 0, SCREEN_WIDTH, 56),
-        pygame.Rect(0, 0, 24, SCREEN_HEIGHT),
-        pygame.Rect(SCREEN_WIDTH - 24, 0, 24, SCREEN_HEIGHT),
-        pygame.Rect(0, SCREEN_HEIGHT - 20, SCREEN_WIDTH, 24),
-    ]
-
     #Loop básico
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
 
     createWalls()
-
     pictureUpdate()
 
+    #Criar Background
     screen.blit(BACKGROUND, (-32,-20))
 
     object_group.update()
@@ -256,6 +258,9 @@ while True:
 
     protag_group.update()
     protag_group.draw(screen)
+
+    object_over.update()
+    object_over.draw(screen)
 
     if False:
         #O jogo acaba
