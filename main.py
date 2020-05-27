@@ -8,6 +8,7 @@ TITLE = 'Escape the Room'
 SCREEN_WIDTH = 320
 SCREEN_HEIGHT = 288
 FPS = 24
+GAME_TIMER = 100
 
 #Velocidade do protag
 CHAR_WIDTH, CHAR_HEIGHT = ((32),(32))
@@ -29,12 +30,12 @@ GAME_SPEED = 10
 
 #Criar classe Protag, o personagem principal
 class Protag(pygame.sprite.Sprite):
-
-    stepCounter = 0
     #código de inicialização de toda classe Sprite do pygame
     def __init__(self):
         #inicializar sprite
         pygame.sprite.Sprite.__init__(self)
+
+        self.stepCounter = 0
 
         #Trocar apenas as sprites de acordo com o movimento
         self.images = [
@@ -60,9 +61,9 @@ class Protag(pygame.sprite.Sprite):
         #Necessário para posicionar a sprite na tela
         self.rect = self.image.get_rect()
         #Desenhar o pássaro na metade da tela. o [0] se refere a posição X
-        self.rect[0] = SCREEN_WIDTH / 2
+        self.rect[0] = 32 + CHAR_WIDTH
         #Desenhar o pássaro na metade da tela. o [1] se refere a posição Y
-        self.rect[1] = SCREEN_HEIGHT / 2
+        self.rect[1] = 96 + CHAR_WIDTH
 
     def update(self):
   
@@ -94,7 +95,6 @@ class Protag(pygame.sprite.Sprite):
             protag.rect[1] += SPEED
 
             if self.stepCounter % 2 == 0:
-                # time.sleep(SPEED)
                 self.image = pygame.transform.flip(self.image, True, False)
             self.stepCounter += 1
 
@@ -117,13 +117,13 @@ class Protag(pygame.sprite.Sprite):
             
             protag.rect[0] -= SPEED
             self.stepCounter += 1
+        
+        print(self.stepCounter)
 
 class Object(pygame.sprite.Sprite):
 
     def __init__(self, path, positionX, positionY):
-        # , imageWidth = Image.width, imageHeight = Image.height
         pygame.sprite.Sprite.__init__(self)
-        
         image = Image.open(path)
         self.image = pygame.image.load(path)
         self.image = pygame.transform.scale(self.image, ((2 * image.width), (2 * image.height)))
@@ -136,7 +136,6 @@ class Object(pygame.sprite.Sprite):
 
     def update(self):
         if self.hitbox.colliderect(protag):
-            print('Colidiu!')
             #Left
             if protag.rect.left >= self.rect.left:
                 protag.rect.left += SPEED
@@ -149,16 +148,55 @@ class Object(pygame.sprite.Sprite):
             #Bottom
             if protag.rect.bottom <= self.rect.bottom:
                 protag.rect.bottom -= SPEED
-            # if protag.rect[1] <= self.rect.bottom:
-            #     protag.rect[1] += SPEED
-            # if protag.rect[0] >= self.rect.right:
-            #     protag.rect[0] += SPEED
-            # if protag.rect[1] <= self.rect.top:
-            #     protag.rect[1] -= SPEED
 
-#Função para verificar se a sprite está fora da tela
-def is_of_screen(sprite):
-    return sprite.rect[0] < -(sprite.rect[2])
+def pictureUpdate():
+    pictures = [
+        'assets/objects/picture1.png',
+        'assets/objects/picture2.png',
+        'assets/objects/picture3.png',
+        'assets/objects/picture4.png',
+        'assets/objects/picture5.png',
+        'assets/objects/picture6.png'
+    ]
+
+    picture = Object(pictures[0], 32, 25)
+
+    if protag.stepCounter >= GAME_TIMER:
+        picture = Object(pictures[1], 32, 25)
+
+    if protag.stepCounter >= 2 * GAME_TIMER:
+        picture = Object(pictures[2], 32, 25)
+    
+    if protag.stepCounter >= 3 * GAME_TIMER:
+        picture = Object(pictures[3], 32, 25)
+
+    if protag.stepCounter >= 4 * GAME_TIMER:
+        picture = Object(pictures[4], 32, 25)
+
+    if protag.stepCounter >= 5 * GAME_TIMER:
+        picture = Object(pictures[5], 32, 25)
+        #Dar game over aqui
+
+    object_group.add(picture)
+
+def createWalls():
+    #Criar paredes
+    for i in range(4):
+        pygame.draw.rect(screen, (255,0,0), Walls[i])
+        #Colisão com as paredes
+        if Walls[i].colliderect(protag):
+            #left
+            if protag.rect[0] <=24:
+                protag.rect[0] += SPEED
+            #top
+            if protag.rect[1] <= 52:
+                protag.rect[1] += SPEED
+            #right
+            if protag.rect[0] >= (SCREEN_WIDTH - 47):
+                protag.rect[0] -= SPEED
+            #bottom
+            if protag.rect[1] >= (SCREEN_HEIGHT - 54):
+                protag.rect[1] -= SPEED
 
 # Inicializador do jogo
 pygame.init()
@@ -181,10 +219,12 @@ protag_group.add(protag)
 
 #criar grupo de objetos
 object_group = pygame.sprite.Group()
-bed = Object('assets/objects/bed.png', 32, 96)
+bed = Object('assets/objects/bed.png', 32, 112)
 window = Object('assets/objects/window.png', 220, 16)
-table = Object('assets/objects/table.png', SCREEN_WIDTH / 2 - 48, 48)
-object_group.add(window, bed, table)
+table = Object('assets/objects/table.png', SCREEN_WIDTH / 2 - 48, SCREEN_HEIGHT / 2 - 24)
+chair = Object('assets/objects/chair.png', SCREEN_WIDTH / 2 + 8, 152)
+exitDoor = Object('assets/objects/exitDoor.png', SCREEN_WIDTH / 2 - 32, 24)
+object_group.add(window, bed, table, chair, exitDoor)
 
 #fps
 clock = pygame.time.Clock()
@@ -205,23 +245,9 @@ while True:
         if event.type == QUIT:
             pygame.quit()
 
-    #Criar paredes
-    for i in range(4):
-        pygame.draw.rect(screen, (255,0,0), Walls[i])
-        #Colisão com as paredes
-        if Walls[i].colliderect(protag):
-            #left
-            if protag.rect[0] <=24:
-                protag.rect[0] += SPEED
-            #top
-            if protag.rect[1] <= 52:
-                protag.rect[1] += SPEED
-            #right
-            if protag.rect[0] >= (SCREEN_WIDTH - 47):
-                protag.rect[0] -= SPEED
-            #bottom
-            if protag.rect[1] >= (SCREEN_HEIGHT - 54):
-                protag.rect[1] -= SPEED
+    createWalls()
+
+    pictureUpdate()
 
     screen.blit(BACKGROUND, (-32,-20))
 
