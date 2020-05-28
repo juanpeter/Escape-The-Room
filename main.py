@@ -52,6 +52,20 @@ class Protag(pygame.sprite.Sprite):
         self.rect[1] = 112
 
     def update(self):
+
+        #Colisão com as paredes
+        #left
+        if protag.rect[0] <=24:
+            protag.rect[0] += SPEED
+        #top
+        if protag.rect[1] <= 52:
+            protag.rect[1] += SPEED
+        #right
+        if protag.rect[0] >= (SCREEN_WIDTH - 47):
+            protag.rect[0] -= SPEED
+        #bottom
+        if protag.rect[1] >= (SCREEN_HEIGHT - 54):
+            protag.rect[1] -= SPEED
   
         #controles do jogador
         control = pygame.key.get_pressed()
@@ -64,11 +78,12 @@ class Protag(pygame.sprite.Sprite):
             self.walk('left')
         if control[pygame.K_RIGHT]:
             self.walk('right')
+        if control[pygame.K_x] or control[pygame.K_z]:
+           self.interact()
 
     def walk(self, pos):
 
         if pos == 'up':
-
             self.image = self.images[1]
             protag.rect[1] -= SPEED
 
@@ -104,6 +119,35 @@ class Protag(pygame.sprite.Sprite):
             protag.rect[0] -= SPEED
             self.stepCounter += 1
 
+    def interact(self):
+        print(self.rect)
+
+        #Nota da mesa
+        if 102 <= self.rect[0] <= 142 and 157 <= self.rect[1] <= 162:
+            print('note!')
+
+        #cama
+        if 107 <= self.rect[1] <= 142:
+            if 62 <= self.rect[0] <= 72:
+                print('É uma cama')
+            elif self.rect[0] < 62:
+                print('Voltar a dormir?')
+
+        #planta
+        if self.rect[0] <= 57:
+            if 192 <= self.rect[1] <= 232:
+                print('Plant!')
+
+        #Armário
+        if self.rect[1] <= 212:
+            if 217 <= self.rect[0] <= 272:
+                print('Armário!')
+
+        #ExitDoor
+        if self.rect[1] <= 72:
+            if 117 <= self.rect[0] <= 172:
+                print('A porta está trancada')
+
 class Object(pygame.sprite.Sprite):
 
     def __init__(self, path, positionX, positionY, colision = True):
@@ -135,7 +179,7 @@ class Object(pygame.sprite.Sprite):
                 if protag.rect.bottom <= self.rect.bottom:
                     protag.rect.bottom -= SPEED
 
-def pictureUpdate():
+def pictureUpdate(num):
     pictures = [
         'assets/objects/picture1.png',
         'assets/objects/picture2.png',
@@ -145,25 +189,25 @@ def pictureUpdate():
         'assets/objects/picture6.png'
     ]
 
-    picture = Object(pictures[0], 32, 25)
+    picture = Object(pictures[num], 32, 25)
 
-    if protag.stepCounter >= GAME_TIMER:
-        picture = Object(pictures[1], 32, 25)
-        #TO DO talvez fazer isso
-        # BACKGROUND = pygame.image.load('assets/roomDark.png')
-        # screen.blit(BACKGROUND, (-32,-20))
+    # if protag.stepCounter >= GAME_TIMER:
+    #     picture = Object(pictures[1], 32, 25)
+    #     #TO DO talvez fazer isso
+    #     # BACKGROUND = pygame.image.load('assets/roomDark.png')
+    #     # screen.blit(BACKGROUND, (-32,-20))
 
-    if protag.stepCounter >= 2 * GAME_TIMER:
-        picture = Object(pictures[2], 32, 25)
+    # if protag.stepCounter >= 2 * GAME_TIMER:
+    #     picture = Object(pictures[2], 32, 25)
     
-    if protag.stepCounter >= 3 * GAME_TIMER:
-        picture = Object(pictures[3], 32, 25)
+    # if protag.stepCounter >= 3 * GAME_TIMER:
+    #     picture = Object(pictures[3], 32, 25)
 
-    if protag.stepCounter >= 4 * GAME_TIMER:
-        picture = Object(pictures[4], 32, 25)
+    # if protag.stepCounter >= 4 * GAME_TIMER:
+    #     picture = Object(pictures[4], 32, 25)
 
-    if protag.stepCounter >= 5 * GAME_TIMER:
-        picture = Object(pictures[5], 32, 25)
+    # if protag.stepCounter >= 5 * GAME_TIMER:
+    #     picture = Object(pictures[5], 32, 25)
         #Dar game over aqui
         # BACKGROUND = pygame.image.load('assets/roomDark.png')
 
@@ -181,20 +225,6 @@ def createWalls():
     #Criar paredes
     for i in range(4):
         pygame.draw.rect(screen, (255,0,0), Walls[i])
-        #Colisão com as paredes
-        if Walls[i].colliderect(protag):
-            #left
-            if protag.rect[0] <=24:
-                protag.rect[0] += SPEED
-            #top
-            if protag.rect[1] <= 52:
-                protag.rect[1] += SPEED
-            #right
-            if protag.rect[0] >= (SCREEN_WIDTH - 47):
-                protag.rect[0] -= SPEED
-            #bottom
-            if protag.rect[1] >= (SCREEN_HEIGHT - 54):
-                protag.rect[1] -= SPEED
 
 # Inicializador do jogo
 pygame.init()
@@ -237,6 +267,8 @@ object_over.add(sheets, plant, chair)
 
 #fps
 clock = pygame.time.Clock()
+createWalls()
+pictureUpdate(0)
 
 while True:
     #definir fps no jogo
@@ -246,9 +278,21 @@ while True:
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
+        
+    if protag.stepCounter == GAME_TIMER:
+        pictureUpdate(1)
 
-    createWalls()
-    pictureUpdate()
+    if protag.stepCounter == 2 * GAME_TIMER:
+        pictureUpdate(2)
+
+    if protag.stepCounter == 3 * GAME_TIMER:
+        pictureUpdate(3)
+
+    if protag.stepCounter == 4 * GAME_TIMER:
+        pictureUpdate(4)
+
+    if protag.stepCounter == 5 * GAME_TIMER:
+        pictureUpdate(5)
 
     #Criar Background
     screen.blit(BACKGROUND, (-32,-20))
