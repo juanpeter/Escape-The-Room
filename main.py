@@ -9,6 +9,7 @@ SCREEN_WIDTH = 320
 SCREEN_HEIGHT = 288
 FPS = 24
 GAME_TIMER = 100
+FONT_SIZE = 16
 
 #Velocidade do protag
 CHAR_WIDTH, CHAR_HEIGHT = ((32),(32))
@@ -120,11 +121,10 @@ class Protag(pygame.sprite.Sprite):
             self.stepCounter += 1
 
     def interact(self):
-        print(self.rect)
 
         #Nota da mesa
         if 102 <= self.rect[0] <= 142 and 157 <= self.rect[1] <= 162:
-            print('note!')
+            speak('note')
 
         #cama
         if 107 <= self.rect[1] <= 142:
@@ -143,24 +143,37 @@ class Protag(pygame.sprite.Sprite):
             if 217 <= self.rect[0] <= 272:
                 print('Armário!')
 
+        #Cofre
+        if self.rect[1] <= 212:
+            if 187 <= self.rect[0] <= 216:
+                print('Cofre!')
+
+        #Janela
+        if self.rect[1] <= 77:
+            if 207 <= self.rect[0] <= 272:
+                print('Janela!')
+
         #ExitDoor
-        if self.rect[1] <= 72:
+        if self.rect[1] <= 67:
             if 117 <= self.rect[0] <= 172:
                 print('A porta está trancada')
-
+        
 class Object(pygame.sprite.Sprite):
 
-    def __init__(self, path, positionX, positionY, colision = True):
+    def __init__(self, path, positionX, positionY, colision = True, scale = True):
         pygame.sprite.Sprite.__init__(self)
         image = Image.open(path)
         self.image = pygame.image.load(path)
-        self.image = pygame.transform.scale(self.image, ((2 * image.width), (2 * image.height)))
+        if scale:
+            self.image = pygame.transform.scale(self.image, ((2 * image.width), (2 * image.height)))
+            self.hitbox = pygame.Rect(positionX, positionY, 2 * image.width - 8, 2 * image.height - 8)
+        else:
+            self.hitbox = pygame.Rect(positionX, positionY, image.width - 8, image.height - 8)
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.rect[0] = positionX
-        self.rect[1] = positionY
-        self.hitbox = pygame.Rect(positionX, positionY, 2 * image.width - 8, 2 * image.height - 8)
-        pygame.draw.rect(screen, (0,255,0), self.hitbox)
+        self.rect[1] = positionY    
+        pygame.draw.rect(screen, (0, 0, 0, 0), self.hitbox)
         self.colision = colision
 
     def update(self):
@@ -226,8 +239,24 @@ def createWalls():
     for i in range(4):
         pygame.draw.rect(screen, (255,0,0), Walls[i])
 
+def speak(obj):
+    speakBubble = Object('assets/speakBubble.png', SCREEN_WIDTH / 2 - 140, SCREEN_HEIGHT - 100, False, False)
+    object_over.add(speakBubble)
+
+    if obj == 'note':
+        message = 'Encontre a chave antes que seja tarde...'
+
+    print(message)
+
+    text = font.render(message, 1, (0, 0, 0))
+    screen.blit(text, speakBubble)
+    
 # Inicializador do jogo
 pygame.init()
+
+#Fontes
+pygame.font.init()
+font = pygame.font.SysFont('assets/fonts/pixelated.ttf', FONT_SIZE)
 
 #display do nome do jogo
 pygame.display.set_caption(TITLE)
