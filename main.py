@@ -25,6 +25,7 @@ class Protag(pygame.sprite.Sprite):
         self.stepCounter = 0
         self.intBed = 0
         self.windowBroken = 0
+        self.intPic = 0
 
         #Trocar apenas as sprites de acordo com o movimento
         self.images = [
@@ -204,6 +205,7 @@ class Object(pygame.sprite.Sprite):
                     protag.rect.bottom -= SPEED
 
 def pictureUpdate(num):
+    protag.intPic = num
     pictures = [
         'assets/objects/picture1.png',
         'assets/objects/picture2.png',
@@ -232,7 +234,6 @@ def createWalls():
 
 def speak(obj):
     speakBubble = Object('assets/speakBubble.png', SCREEN_WIDTH / 2 - 140, SCREEN_HEIGHT - 100, False, False)
-    speakBubble.center = ((SCREEN_WIDTH / 2 - 140), (SCREEN_HEIGHT - 100))
     object_over.add(speakBubble)
     object_over.draw(screen)
 
@@ -294,32 +295,20 @@ def speak(obj):
         messages = [
             '...ELA... PARECE COMIGO?',
             'ALGO ESTÁ ESQUISITO AQUI...',
-            '3',
-            '4',
-            '5'
+            'ELA ESTÁ... CHORANDO?',
+            'TINTA ESTÁ VAZANDO DO QUADRO!',
+            '...EU... TENHO QUE SAIR AGORA!',
+            'EU ESTOU COM UM PRESSENTIMENTO RUIM...'
         ]
 
-        #TODO ajeitar a frase para se adaptar com o tempo
-        messages = [messages[0]]
-        if protag.stepCounter == GAME_TIMER:
-            messages = [messages[1]]
+        messages =[messages[protag.intPic]]
 
-        if protag.stepCounter == 2 * GAME_TIMER:
-            messages = messages[2]
-
-        if protag.stepCounter == 3 * GAME_TIMER:
-            messages = [messages[3]]
-
-        if protag.stepCounter == 4 * GAME_TIMER:
-            messages = [messages[4]]
-
-        if protag.stepCounter == 5 * GAME_TIMER:
-            messages = [messages[5]]
-
+    speakBubble.center = ((SCREEN_WIDTH / 2 - 140), (SCREEN_HEIGHT - 72))
     i = 0
     for i in range(len(messages)):
         text = font.render(messages[i], 1, (1, 16, 28))
-        screen.blit(text, (28, (SCREEN_HEIGHT - 92 + (12 * i))))
+        speakBubble.center = ((32), ((SCREEN_HEIGHT - 92) + (13 * i)))
+        screen.blit(text, (speakBubble.center))
 
     pygame.display.update()
     paused()
