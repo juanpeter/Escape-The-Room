@@ -24,6 +24,7 @@ class Protag(pygame.sprite.Sprite):
 
         self.stepCounter = 0
         self.intBed = 0
+        self.windowBroken = 0
 
         #Trocar apenas as sprites de acordo com o movimento
         self.images = [
@@ -121,11 +122,13 @@ class Protag(pygame.sprite.Sprite):
             self.stepCounter += 1
 
     def interact(self):
-        #Nota da mesa
-        if 102 <= self.rect[0] <= 142 and 157 <= self.rect[1] <= 162:
-            speak('note')
 
-        #bed
+        #Note
+        if 102 <= self.rect[0] <= 142:
+            if 157 <= self.rect[1] <= 162:
+                speak('note')
+
+        #Bed
         if 107 <= self.rect[1] <= 142:
             if 62 <= self.rect[0] <= 72:
                 speak('bed')
@@ -134,30 +137,37 @@ class Protag(pygame.sprite.Sprite):
                 if self.intBed <= 2:
                     self.intBed += 1
 
-        #planta
-        if self.rect[0] <= 57:
+        #Plant
+        if 57 <= self.rect[0]:
             if 192 <= self.rect[1] <= 232:
-                print('Plant!')
+                speak('plant')
 
-        #Armário
-        if self.rect[1] <= 212:
+        #Bookshelf
+        if 212 <= self.rect[1]:
             if 217 <= self.rect[0] <= 272:
-                print('Armário!')
+                speak('bookshelf')
 
-        #Cofre
+        #Safe
         if self.rect[1] <= 212:
             if 187 <= self.rect[0] <= 216:
-                print('Cofre!')
+                speak('safe')
 
-        #Janela
+        #Window
         if self.rect[1] <= 77:
             if 207 <= self.rect[0] <= 272:
-                print('Janela!')
+                speak('window')
+                if self.windowBroken <= 2:
+                    self.windowBroken += 1
+
+        #Picture
+        if 32 <= self.rect[0] <= 72:
+            if 42 <= self.rect[1] <= 72:
+                speak('picture')
 
         #ExitDoor
         if self.rect[1] <= 67:
             if 117 <= self.rect[0] <= 172:
-                print('A porta está trancada')
+                speak('exitDoor')
         
 class Object(pygame.sprite.Sprite):
 
@@ -205,26 +215,6 @@ def pictureUpdate(num):
 
     picture = Object(pictures[num], 32, 25)
 
-    # if protag.stepCounter >= GAME_TIMER:
-    #     picture = Object(pictures[1], 32, 25)
-    #     #TO DO talvez fazer isso
-    #     # BACKGROUND = pygame.image.load('assets/roomDark.png')
-    #     # screen.blit(BACKGROUND, (-32,-20))
-
-    # if protag.stepCounter >= 2 * GAME_TIMER:
-    #     picture = Object(pictures[2], 32, 25)
-    
-    # if protag.stepCounter >= 3 * GAME_TIMER:
-    #     picture = Object(pictures[3], 32, 25)
-
-    # if protag.stepCounter >= 4 * GAME_TIMER:
-    #     picture = Object(pictures[4], 32, 25)
-
-    # if protag.stepCounter >= 5 * GAME_TIMER:
-    #     picture = Object(pictures[5], 32, 25)
-        #Dar game over aqui
-        # BACKGROUND = pygame.image.load('assets/roomDark.png')
-
     object_group.add(picture)
 
 def createWalls():
@@ -267,6 +257,64 @@ def speak(obj):
             '...'
         ]
         messages = [messages[protag.intBed]]
+
+    if obj == 'plant':
+        messages = [
+            'É UMA PLANTA...',
+            'ELA É DE PLÁSTICO.'
+        ]
+
+    if obj == 'bookshelf':
+        messages = [
+            'UM GRANDE ESTANTE CHEIA DE LIVROS',
+            'NADA PARECE MUITO INTERESSANTE AQUI'
+        ]
+
+    if obj == 'safe':
+        messages = [
+            'QUAL É A SENHA?'
+        ]
+    
+    if obj == 'window':
+        messages = [
+            'ESTÁ ESCURO FORA DA JANELA',
+            '... ACHO QUE EU CONSIGO QUEBRA-LA!',
+            '...',
+            'CONSEGUI!'
+        ]
+        messages = [messages[protag.windowBroken]]
+
+    if obj == 'exitDoor':
+        messages = [
+            '...',
+            'A PORTA ESTÁ TRANCADA!'
+        ]
+
+    if obj == 'picture':
+        messages = [
+            '...ELA... PARECE COMIGO?',
+            'ALGO ESTÁ ESQUISITO AQUI...',
+            '3',
+            '4',
+            '5'
+        ]
+
+        #TODO ajeitar a frase para se adaptar com o tempo
+        messages = [messages[0]]
+        if protag.stepCounter == GAME_TIMER:
+            messages = [messages[1]]
+
+        if protag.stepCounter == 2 * GAME_TIMER:
+            messages = messages[2]
+
+        if protag.stepCounter == 3 * GAME_TIMER:
+            messages = [messages[3]]
+
+        if protag.stepCounter == 4 * GAME_TIMER:
+            messages = [messages[4]]
+
+        if protag.stepCounter == 5 * GAME_TIMER:
+            messages = [messages[5]]
 
     i = 0
     for i in range(len(messages)):
