@@ -138,7 +138,7 @@ class Protag(pygame.sprite.Sprite):
                     self.intBed += 1
 
         #Plant
-        if 57 <= self.rect[0]:
+        if self.rect[0] <= 57:
             if 192 <= self.rect[1] <= 232:
                 speak('plant')
 
