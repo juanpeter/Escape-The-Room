@@ -23,6 +23,7 @@ class Protag(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
 
         self.stepCounter = 0
+        self.intBed = 0
 
         #Trocar apenas as sprites de acordo com o movimento
         self.images = [
@@ -34,6 +35,7 @@ class Protag(pygame.sprite.Sprite):
             pygame.image.load('assets/chars/protagonist/side1.png').convert_alpha(),
             pygame.image.load('assets/chars/protagonist/side2.png').convert_alpha()
         ]
+        i = 0
         # Tamanho das sprites
         for i in range(len(self.images)):
             self.images[i] = pygame.transform.scale(self.images[i], (CHAR_WIDTH, CHAR_HEIGHT))
@@ -79,8 +81,6 @@ class Protag(pygame.sprite.Sprite):
             self.walk('left')
         if control[pygame.K_RIGHT]:
             self.walk('right')
-        if control[pygame.K_x] or control[pygame.K_z]:
-           self.interact()
 
     def walk(self, pos):
 
@@ -121,17 +121,18 @@ class Protag(pygame.sprite.Sprite):
             self.stepCounter += 1
 
     def interact(self):
-
         #Nota da mesa
         if 102 <= self.rect[0] <= 142 and 157 <= self.rect[1] <= 162:
             speak('note')
 
-        #cama
+        #bed
         if 107 <= self.rect[1] <= 142:
             if 62 <= self.rect[0] <= 72:
-                print('É uma cama')
+                speak('bed')
             elif self.rect[0] < 62:
-                print('Voltar a dormir?')
+                speak('bedInterior')
+                if self.intBed <= 2:
+                    self.intBed += 1
 
         #planta
         if self.rect[0] <= 57:
@@ -234,29 +235,65 @@ def createWalls():
         pygame.Rect(SCREEN_WIDTH - 24, 0, 24, SCREEN_HEIGHT),
         pygame.Rect(0, SCREEN_HEIGHT - 20, SCREEN_WIDTH, 24),
     ]
-
+    i = 0
     #Criar paredes
     for i in range(4):
         pygame.draw.rect(screen, (255,0,0), Walls[i])
 
 def speak(obj):
     speakBubble = Object('assets/speakBubble.png', SCREEN_WIDTH / 2 - 140, SCREEN_HEIGHT - 100, False, False)
+    speakBubble.center = ((SCREEN_WIDTH / 2 - 140), (SCREEN_HEIGHT - 100))
     object_over.add(speakBubble)
+    object_over.draw(screen)
 
     if obj == 'note':
-        message = 'Encontre a chave antes que seja tarde...'
+        messages = [
+            'QUATRO NÚMEROS, UMA CHAVE,',
+            'UMA MANEIRA DE ESCAPAR,',
+            'O SEU TEMPO É CURTO, E EM BREVE ACABARÁ,',
+            'FUJA, OU DESTE QUARTO NUNCA SAIRÁS.'
+        ]
 
-    print(message)
+    if obj == 'bed':
+        messages = [
+            'ESSA NÃO É MINHA CAMA...',
+            'COMO EU CHEGUEI AQUI?'
+        ]
+    if obj == 'bedInterior':
+        messages = [
+            'EU NÃO TENHO TEMPO PARA ISSO!',
+            'ATÉ QUE ESSA CAMA É BEM CONFORTÁVEL...',
+            'DORMIR UM POUCO NÃO FARIA MAL, CERTO?',
+            '...'
+        ]
+        messages = [messages[protag.intBed]]
 
-    text = font.render(message, 1, (0, 0, 0))
-    screen.blit(text, speakBubble)
-    
+    i = 0
+    for i in range(len(messages)):
+        text = font.render(messages[i], 1, (1, 16, 28))
+        screen.blit(text, (28, (SCREEN_HEIGHT - 92 + (12 * i))))
+
+    pygame.display.update()
+    paused()
+
+    object_over.remove(speakBubble)
+
+def paused():
+    pause = True
+    while pause:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_x or event.type == pygame.K_z:
+                    pause = False
 # Inicializador do jogo
 pygame.init()
 
 #Fontes
 pygame.font.init()
-font = pygame.font.SysFont('assets/fonts/pixelated.ttf', FONT_SIZE)
+font = pygame.font.SysFont('assets/fonts/gameboy.ttf', FONT_SIZE)
 
 #display do nome do jogo
 pygame.display.set_caption(TITLE)
@@ -307,6 +344,10 @@ while True:
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
+
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_x or event.type == pygame.K_z:
+                protag.interact()
         
     if protag.stepCounter == GAME_TIMER:
         pictureUpdate(1)
