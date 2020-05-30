@@ -151,7 +151,7 @@ class Protag(pygame.sprite.Sprite):
         #Safe
         if self.rect[1] <= 212:
             if 187 <= self.rect[0] <= 216:
-                speak('safe')
+                safePassword()
 
         #Window
         if self.rect[1] <= 77:
@@ -159,6 +159,10 @@ class Protag(pygame.sprite.Sprite):
                 speak('window')
                 if self.windowBroken <= 2:
                     self.windowBroken += 1
+                else:
+                    windowBroken = Object('assets/objects/windowOpen.png', 204, 16)
+                    object_group.remove(window)
+                    object_group.add(windowBroken)
 
         #Picture
         if 32 <= self.rect[0] <= 72:
@@ -270,11 +274,6 @@ def speak(obj):
             'UM GRANDE ESTANTE CHEIA DE LIVROS',
             'NADA PARECE MUITO INTERESSANTE AQUI'
         ]
-
-    if obj == 'safe':
-        messages = [
-            'QUAL É A SENHA?'
-        ]
     
     if obj == 'window':
         messages = [
@@ -312,7 +311,6 @@ def speak(obj):
 
     pygame.display.update()
     paused()
-
     object_over.remove(speakBubble)
 
 def paused():
@@ -325,6 +323,18 @@ def paused():
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_x or event.type == pygame.K_z:
                     pause = False
+    
+def safePassword():
+    passwordBubble = Object('assets/speakBubble.png', SCREEN_WIDTH / 2 - 140, SCREEN_HEIGHT / 2  - 72, False, False)
+    object_over.add(passwordBubble)
+    object_over.draw(screen)
+    text = font.render('insert password', 1, (1, 16, 28))
+    passwordBubble.center = ((SCREEN_WIDTH / 2 - font.size('insert password')[0]), ((SCREEN_HEIGHT / 2 - 40)))
+    screen.blit(text, (passwordBubble.center))
+    pygame.display.update()
+    paused()
+    object_over.remove(passwordBubble)
+
 # Inicializador do jogo
 pygame.init()
 
