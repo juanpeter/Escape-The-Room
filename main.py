@@ -238,7 +238,6 @@ def pictureUpdate():
         ]
 
         picture = Object(pictures[protag.intPic], 32, 25)
-        print(protag.intPic)
 
         object_group.add(picture)
 
@@ -474,9 +473,10 @@ while True:
                 protag.interact()
 
     #Não funciona, não sei porque
-    if protag.stepCounter + 1 % GAME_TIMER == 0 and protag.intPic < 6:
-        protag.intPic += 1
-        pictureUpdate()
+    if protag.stepCounter >= GAME_TIMER:
+        if protag.stepCounter % GAME_TIMER == 0 and protag.intPic < 6:
+            protag.intPic += 1
+            pictureUpdate()
 
     #Criar Background
     screen.blit(BACKGROUND, (-32,-20))
