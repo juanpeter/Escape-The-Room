@@ -3,20 +3,23 @@ from pygame.locals import *
 
 from PIL import Image
 
-#CONFIGURAÇÕES PRINCIPAIS
+#está ficando preto quando interage com a janela, parar isso
+
+# Basic configurations of the game
 TITLE = 'Escape the Room'
 SCREEN_WIDTH = 320
 SCREEN_HEIGHT = 288
 FPS = 24
 GAME_TIMER = 100
 FONT_SIZE = 16
-
-#Velocidade do protag
+endScreen = False
+# Protags speed and proportions
 CHAR_WIDTH, CHAR_HEIGHT = ((32),(32))
 SPEED = 5
 
-#Criar classe Protag, o personagem principal
 class Protag(pygame.sprite.Sprite):
+    # Creates the protag class
+
     #código de inicialização de toda classe Sprite do pygame
     def __init__(self):
         #inicializar sprite
@@ -28,6 +31,7 @@ class Protag(pygame.sprite.Sprite):
         self.intPic = 0
         self.safeOpen = False
         self.hasKey = False
+        self.usedKey = False
 
         #Trocar apenas as sprites de acordo com o movimento
         self.images = [
@@ -53,9 +57,7 @@ class Protag(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         #Necessário para posicionar a sprite na tela
         self.rect = self.image.get_rect()
-        #Desenhar o pássaro na metade da tela. o [0] se refere a posição X
         self.rect[0] = 32
-        #Desenhar o pássaro na metade da tela. o [1] se refere a posição Y
         self.rect[1] = 112
 
     def update(self):
@@ -139,6 +141,12 @@ class Protag(pygame.sprite.Sprite):
                 speak('bedInterior')
                 if self.intBed <= 2:
                     self.intBed += 1
+                else:
+                    # Quero que mostre uma cena antes de acabar
+                    # self.intPic = 6
+                    # pictureUpdate()
+                    # pygame.display.update()
+                    ending('sleep')
 
         #Plant
         if self.rect[0] <= 57:
@@ -156,7 +164,6 @@ class Protag(pygame.sprite.Sprite):
                 if protag.safeOpen:
                     speak('safeOpen')
                     protag.hasKey = True
-                    safeEmpty = Object('assets/objects/safeEmpty.png', 200, 152)
                     object_group.add(safeEmpty)
                 else:
                     safePassword()
@@ -168,10 +175,9 @@ class Protag(pygame.sprite.Sprite):
                     speak('window')
                     self.windowBroken += 1
                 elif self.windowBroken == 3:
-                    windowBroken = Object('assets/objects/windowOpen.png', 204, 16)
                     object_group.remove(window)
                     object_group.add(windowBroken)
-                    speak('window')
+                    pygame.display.update()
                     self.windowBroken += 1
                 else:
                     speak('windowBroken')
@@ -184,15 +190,19 @@ class Protag(pygame.sprite.Sprite):
         #ExitDoor
         if self.rect[1] <= 67:
             if 117 <= self.rect[0] <= 172:
-                if protag.hasKey:
+                if protag.usedKey:
                     speak('openDoor')
-                    doorOpen = Object('assets/objects/doorOpen.png', SCREEN_WIDTH / 2 - 48, 24)
+                    ending('escape')
+                elif protag.hasKey:
                     object_group.remove(exitDoor)
                     object_group.add(doorOpen)
-                else:
+                    pygame.display.update()
+                    protag.usedKey = True
+                elif not protag.usedKey:
                     speak('exitDoor')
         
 class Object(pygame.sprite.Sprite):
+    #Basic class for objects
 
     def __init__(self, path, positionX, positionY, colision = True, scale = True):
         pygame.sprite.Sprite.__init__(self)
@@ -227,6 +237,7 @@ class Object(pygame.sprite.Sprite):
                     protag.rect.bottom -= SPEED
 
 def pictureUpdate():
+    # Updates the haunted picture according to steps taken
     if protag.intPic < 6:
         pictures = [
             'assets/objects/picture1.png',
@@ -241,8 +252,11 @@ def pictureUpdate():
 
         object_group.add(picture)
 
+    else:
+        ending('death')
+        
 def createWalls():
-
+    # Creates the games 4 main walls
     Walls = [
         pygame.Rect(0, 0, SCREEN_WIDTH, 56),
         pygame.Rect(0, 0, 24, SCREEN_HEIGHT),
@@ -255,6 +269,7 @@ def createWalls():
         pygame.draw.rect(screen, (255,0,0), Walls[i])
 
 def speak(obj):
+    #Creates speak balloon, and contains all object texts
     speakBubble = Object('assets/speakBubble.png', SCREEN_WIDTH / 2 - 140, SCREEN_HEIGHT - 100, False, False)
     object_over.add(speakBubble)
     object_over.draw(screen)
@@ -298,8 +313,7 @@ def speak(obj):
         messages = [
             'ESTÁ ESCURO FORA DA JANELA',
             '... ACHO QUE EU CONSIGO ABRI-LA!',
-            '...',
-            'CONSEGUI!'
+            '...'
         ]
         messages = [messages[protag.windowBroken]]
 
@@ -351,6 +365,7 @@ def speak(obj):
     object_over.remove(speakBubble)
 
 def paused():
+    # Literally just pauses the game, pressing X or Z will cancel it
     pause = True
     while pause:
 
@@ -359,11 +374,11 @@ def paused():
                 pygame.quit()
 
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_x or event.type == pygame.K_z:
+                if event.key == pygame.K_x:
                     pause = False
     
 def safePassword():
-
+    # This function checks if input numbers are correct to the password
     PASSWORD = '384'
     ANSWER = ''
     NUMS = ['0','1','2','3','4','5','5','6','7','8', '9']
@@ -371,8 +386,8 @@ def safePassword():
     passwordBubble = Object('assets/speakBubble.png', SCREEN_WIDTH / 2 - 140, SCREEN_HEIGHT / 2  - 72, False, False)
     object_over.add(passwordBubble)
     object_over.draw(screen)
-    text = font.render('Isira uma senha', 1, (1, 16, 28))
-    passwordBubble.center = ((SCREEN_WIDTH / 2 - font.size('insert password')[0]), ((SCREEN_HEIGHT / 2 - 40)))
+    text = font.render('INSIRA OS 3 DIGITOS:', 1, (1, 16, 28))
+    passwordBubble.center = ((SCREEN_WIDTH / 2 - 64), ((SCREEN_HEIGHT / 2 - 60)))
     screen.blit(text, (passwordBubble.center))
     pygame.display.update()
 
@@ -390,54 +405,110 @@ def safePassword():
                         if event.key == getattr(pygame,'K_'+ NUMS[i]):
                             ANSWER += NUMS[i]
                             numbers +=1
-                            print(ANSWER)
+                            answer = font.render(ANSWER, 1, (1, 16, 28) )
+                            screen.blit(answer, ((passwordBubble.center[0] + 42), (passwordBubble.center[1] + 32)))
+                            pygame.display.update()
 
         if ANSWER == PASSWORD:
             object_group.remove(safe)
-            safeOpen = Object('assets/objects/safeOpen.png', 200, 152)
             object_group.add(safeOpen)
             pygame.display.update()
             protag.safeOpen = True
 
         else:
-            print('Senha incorreta!')
             protag.intPic += 1
             pictureUpdate()
             numbers = 0
             ANSWER = ''
-            print(numbers)
 
         pause = False
 
     object_over.remove(passwordBubble)
 
-# Inicializador do jogo
+def ending(ending):
+    endScreen = True
+
+    if ending == 'escape':
+        ending = 'FIM 1/3: ESCAPOU!'
+
+    if ending == 'sleep':
+        ending = 'FIM 2/3: APENAS UM SONHO RUIM...'
+
+    if ending == 'death':
+        ending = 'FIM 3/3: PRESA PARA SEMPRE'
+        
+    while endScreen:
+        screen.fill((0,0,0))
+        text = font.render(ending, 1, (255, 255, 255))
+        screen.blit(text, ((32), (SCREEN_HEIGHT / 2)))
+        newgame = font.render('APERTE X PARA JOGAR NOVAMENTE', 1, (255, 255, 255))
+        screen.blit(newgame, ((32), (SCREEN_HEIGHT - 48)))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                elif event.key == pygame.K_x:
+                    reset()
+                    endScreen = False
+        
+        pygame.display.update()
+
+def reset():
+
+    if protag.windowBroken == 4:
+        object_group.remove(windowBroken)
+        object_group.add(window)
+
+    if protag.usedKey:
+        object_group.remove(doorOpen)
+        object_group.add(exitDoor)
+        object_group.remove(safeEmpty)
+        object_group.add(safe)
+ 
+    protag.rect[0] = 32
+    protag.rect[1] = 112
+    protag.stepCounter = 0
+    protag.intBed = 0
+    protag.windowBroken = 0
+    protag.intPic = 0
+    protag.safeOpen = False
+    protag.hasKey = False
+    protag.usedKey = False
+    protag.image = protag.images[0]
+
+    pictureUpdate()
+
+# Start the game
 pygame.init()
 
-#Fontes
+# Fonts
 pygame.font.init()
 font = pygame.font.SysFont('assets/fonts/gameboy.ttf', FONT_SIZE)
 
-#display do nome do jogo
+# Display the game name
 pygame.display.set_caption(TITLE)
 
-#configurações de tela
+# Set display configurations
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
+# Create background and define its proportions
 BACKGROUND = pygame.image.load('assets/room.png')
-
-#A imagem de bg terá o tamanho (SCREEN_WIDTH, SCREEN_HEIGHT)
 BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDTH + 64, SCREEN_HEIGHT + 48))
 
-#Criar um grupo de protag, criar um protag e adicioná-lo no grupo
+# Create protagonist
 protag_group = pygame.sprite.Group()
 protag = Protag()
 protag_group.add(protag)
 
-#criar grupo de objetos
+# OBJECT LIST
 object_group = pygame.sprite.Group()
 bed = Object('assets/objects/bed.png', 32, 112, False)
 window = Object('assets/objects/window.png', 220, 16)
+windowBroken = Object('assets/objects/windowOpen.png', 204, 16)
 table = Object('assets/objects/table.png', SCREEN_WIDTH / 2 - 48, SCREEN_HEIGHT / 2 - 24)
 chair2 = Object('assets/objects/chair2.png', 260, 200, False)
 carpet = Object('assets/objects/carpet.png', SCREEN_WIDTH / 2 - 48, 72, False)
@@ -445,40 +516,52 @@ carpet2 = Object('assets/objects/carpet.png', 200, 210, False)
 books = Object('assets/objects/books.png', 232, 152)
 pot = Object('assets/objects/pot.png', 32, 230)
 safe = Object('assets/objects/safe.png', 200, 152)
+safeOpen = Object('assets/objects/safeOpen.png', 200, 152)
+safeEmpty = Object('assets/objects/safeEmpty.png', 200, 152)
 exitDoor = Object('assets/objects/exitDoor.png', SCREEN_WIDTH / 2 - 32, 24)
+doorOpen = Object('assets/objects/doorOpen.png', SCREEN_WIDTH / 2 - 48, 24)
 object_group.add(window, carpet, carpet2, table, bed,  books, chair2, pot, safe, exitDoor)
 
+# Create objects that go over the player
 object_over = pygame.sprite.Group()
 plant = Object('assets/objects/plant.png', 32, 190, False)
 sheets = Object('assets/objects/sheets.png', 32, 133, False)
 chair = Object('assets/objects/chair.png', SCREEN_WIDTH / 2 + 8, 156, False)
 object_over.add(sheets, plant, chair)
 
-#fps
+# call fps
 clock = pygame.time.Clock()
+# Create walls
 createWalls()
+# Create Picture
 pictureUpdate()
 
 while True:
-    #definir fps no jogo
+    # Game fps
     clock.tick(FPS)
 
-    #Loop básico
+    # Basic loop
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
 
         if event.type == pygame.KEYUP:
-            if event.key == pygame.K_x or event.type == pygame.K_z:
+            if event.key == pygame.K_x:
                 protag.interact()
 
-    #Não funciona, não sei porque
+    # Count steps towards picture progression
     if protag.stepCounter >= GAME_TIMER:
-        if protag.stepCounter % GAME_TIMER == 0 and protag.intPic < 6:
+        if protag.stepCounter % GAME_TIMER == 0 and protag.intPic < 7:
             protag.intPic += 1
             pictureUpdate()
 
-    #Criar Background
+    if protag.intPic >= 3:
+        BACKGROUND = pygame.image.load('assets/roomDark.png')
+        BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDTH + 64, SCREEN_HEIGHT + 48))
+    elif protag.intPic < 3:
+        BACKGROUND = pygame.image.load('assets/room.png')
+        BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDTH + 64, SCREEN_HEIGHT + 48))
+    
     screen.blit(BACKGROUND, (-32,-20))
 
     object_group.update()
@@ -491,7 +574,7 @@ while True:
     object_over.draw(screen)
 
     if False:
-        #O jogo acaba
+        # End game
         break
 
     pygame.display.update()
