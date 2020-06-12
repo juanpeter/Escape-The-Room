@@ -13,4 +13,4 @@ A young woman finds herself in a room that is not hers, and she must find a way 
 - Marcos Antônio: Programming help
 
 ## Special Thanks
-- [https://github.com/Shimmer66](Shimmer66) for taking interest in this game!
+- [Shimmer66](https://github.com/Shimmer66) for taking interest in this game!
