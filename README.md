@@ -10,7 +10,7 @@ A young woman finds herself in a room that is not hers, and she must find a way 
 
 ## Credits:
 - João Pedro Israel (me!): Programming, writing and some artwork;
-- Marcos Antônio: Programming help
+- Fernando Figueiredo: Programming help
 
 ## Special Thanks
 - [Shimmer66](https://github.com/Shimmer66) for taking interest in this game!
